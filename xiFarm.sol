@@ -341,23 +341,24 @@ contract Ownable is Context {
 //XI FARM START
 
 contract XiFarm is Context, Ownable {
-
+    
   using SafeMath for uint256;
-
+  
   address poohAddy = 0x9673C2196fCAe71bE87864CDb04aDc4644559e89;//POOHTEST ADDY
   address XiAddy = 0x098b246bf19ba9C5aD9C5dD994815e1db444eaA6;//XITEST ADDY
-
+  
   IBEP20 POOH = IBEP20(poohAddy);
   IBEP20 Xi = IBEP20(XiAddy);
-
+  
   uint public xiStakeRewardCap = 20000000 * (10 ** 18); //20% of TOTAL Xi Supply
   uint public xiStakeTime = 96000; //TIME IN BLOCKS
-
+  
   uint public blockReward = (xiStakeRewardCap/xiStakeTime) * (10 ** 18);
   uint totalStaked = 0;
-
+  uint totalStakedRealtime = 0;
+  
   address[] public stakers;
-
+  
   mapping (address => uint256) public stakedBalance;
   mapping (address => bool) public isStaking;
 
@@ -366,24 +367,25 @@ contract XiFarm is Context, Ownable {
   }
     //Struct that keeps information about each users stake, mapped to with Stakes
     struct stakeInfo {
-
+        
         uint[] deposits;
         uint[] depositTimes;
         uint[] rewards;
     }
-
+    
     mapping(address => stakeInfo) Stakes;
-
+    
     function stakePOOH(uint _amount) public {
-
+        
         require(_amount > 0);
-
+        
         //Transfer POOH for staking
         POOH.transferFrom(msg.sender, address(this), _amount);
         //Update stakedBalance for msgsender address
         stakedBalance[msg.sender] = stakedBalance[msg.sender].add(_amount);
         //Add _amount to totalStaked
         totalStaked = totalStaked.add(_amount);
+        totalStakedRealtime = totalStakedRealtime.add(_amount);
         //Push _amount to deposits[] and block.number to depositTimes[]
         //Used to calculate poolShare and distribute rewards upon unstaking - repeated for every deposit made individually
         Stakes[msg.sender].deposits.push(_amount);
@@ -391,7 +393,7 @@ contract XiFarm is Context, Ownable {
 
 
     }
-
+    
     //OLD SHITTY FUNCTION
     /*function unstakeAndClaim() public {
         //Ensure sender is staking and has balance above zero
@@ -416,7 +418,7 @@ contract XiFarm is Context, Ownable {
         stakedBalance[msg.sender] = 0;
         Xi.transfer(msg.sender, rewardAmountXi);
     }*/
-
+    
     //NEW SHINY AND IMPROVED, MAYBE, A BIT? WHO KNOWS?! FUNCTION
     function unstakeTokens() public {
         //Check staked balance above 0
@@ -429,8 +431,6 @@ contract XiFarm is Context, Ownable {
             uint diff = (block.number.sub(Stakes[msg.sender].depositTimes[i]));
             //assign appropriate reward to user rewards[i]
             Stakes[msg.sender].rewards[i] = ((poolShare*blockReward)/100).mul(diff);
-            //Subtract deposit value from total staked value
-            totalStaked = totalStaked.sub(Stakes[msg.sender].deposits[i]);
             //send amount of Xi stored in rewards[i] to user
             Xi.transfer(msg.sender, Stakes[msg.sender].rewards[i]);
             //subtract deposits[i] from user stakedBalance
@@ -441,9 +441,12 @@ contract XiFarm is Context, Ownable {
         delete Stakes[msg.sender].depositTimes;
         //Transfer POOH back to user
         POOH.transfer(msg.sender, stakedBalance[msg.sender]);
+        //subtract from total staked
         //Set user stakedBalance back to 0
+        totalStaked = totalStaked.sub(stakedBalance[msg.sender]);
         stakedBalance[msg.sender] = 0;
+        
     }
-
+    
 
 }
