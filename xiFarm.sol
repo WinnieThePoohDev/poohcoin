@@ -1,5 +1,6 @@
 pragma solidity ^0.5.16;
 
+
 interface IBEP20 {
   /**
    * @dev Returns the amount of tokens in existence.
@@ -353,14 +354,12 @@ contract XiFarm is Context, Ownable {
   uint public xiStakeRewardCap = 20000000 * (10 ** 18); //20% of TOTAL Xi Supply
   uint public xiStakeTime = 96000; //TIME IN BLOCKS
   
-  uint public blockReward = (xiStakeRewardCap/xiStakeTime) * (10 ** 18);
+  uint public blockReward = (xiStakeRewardCap/xiStakeTime);
   uint totalStaked = 0;
-  uint totalStakedRealtime = 0;
   
   address[] public stakers;
   
   mapping (address => uint256) public stakedBalance;
-  mapping (address => bool) public isStaking;
 
 
   constructor() public {
@@ -447,6 +446,5 @@ contract XiFarm is Context, Ownable {
         stakedBalance[msg.sender] = 0;
         
     }
-    
 
 }
