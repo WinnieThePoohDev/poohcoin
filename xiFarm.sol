@@ -357,8 +357,6 @@ contract XiFarm is Context, Ownable {
   uint public blockReward = (xiStakeRewardCap/xiStakeTime);
   uint totalStaked = 0;
   
-  address[] public stakers;
-  
   mapping (address => uint256) public stakedBalance;
 
 
