@@ -382,7 +382,6 @@ contract XiFarm is Context, Ownable {
         stakedBalance[msg.sender] = stakedBalance[msg.sender].add(_amount);
         //Add _amount to totalStaked
         totalStaked = totalStaked.add(_amount);
-        totalStakedRealtime = totalStakedRealtime.add(_amount);
         //Push _amount to deposits[] and block.number to depositTimes[]
         //Used to calculate poolShare and distribute rewards upon unstaking - repeated for every deposit made individually
         Stakes[msg.sender].deposits.push(_amount);
