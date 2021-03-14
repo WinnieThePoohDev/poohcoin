@@ -392,32 +392,6 @@ contract XiFarm is Context, Ownable {
 
     }
     
-    //OLD SHITTY FUNCTION
-    /*function unstakeAndClaim() public {
-        //Ensure sender is staking and has balance above zero
-        require(stakedBalance[msg.sender] > 0);
-        //Get stakeStartBlock and current block
-        uint startBlock = stakeStartBlock[msg.sender];
-        //Store difference in block numbers under "diff" variable
-        uint diff = (getAverageBlock(msg.sender) - startBlock);
-        //Calculate what % of the pool the user is staking
-        uint poolShare = (stakedBalance[msg.sender]/totalStaked).mul(100);
-        //Give them this % of the blockReward multiplied by the number of blocks they staked for (diff) in Xi
-        uint rewardAmountXi = ((poolShare*blockReward)/100).mul(diff);
-        //Set staking flag to false, set startStakeBlock to 0
-        //Reduces totalStaked value by user stakeAmount
-        //NOTE: Unstaking will reset users block count.
-        totalStaked = totalStaked.sub(stakedBalance[msg.sender]);
-        isStaking[msg.sender] = false;
-        stakeStartBlock[msg.sender] = 0;
-        //Transfer staked POOH back to user, and transfer correct amount of Xi
-        POOH.transfer(msg.sender, stakedBalance[msg.sender]);
-        //remove stakedBalance balance
-        stakedBalance[msg.sender] = 0;
-        Xi.transfer(msg.sender, rewardAmountXi);
-    }*/
-    
-    //NEW SHINY AND IMPROVED, MAYBE, A BIT? WHO KNOWS?! FUNCTION
     function unstakeTokens() public {
         //Check staked balance above 0
         require(stakedBalance[msg.sender] > 0);
