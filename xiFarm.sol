@@ -428,6 +428,7 @@ contract XiFarm is Context, Ownable {
             //get difference in block numbers from deposit block to current block
             uint diff = (block.number.sub(Stakes[msg.sender].depositTimes[i]));
             //assign appropriate reward to user rewards[i]
+            //Takes each deposit's current share of the pool and gives it that % of blockReward number of tokens * diff
             Stakes[msg.sender].rewards[i] = ((poolShare*blockReward)/100).mul(diff);
             //send amount of Xi stored in rewards[i] to user
             Xi.transfer(msg.sender, Stakes[msg.sender].rewards[i]);
@@ -443,7 +444,7 @@ contract XiFarm is Context, Ownable {
         POOH.transfer(msg.sender, stakedBalance[msg.sender]);
         //subtract from total staked
         //Set user stakedBalance back to 0
-        totalStaked = totalStaked.sub(stakedBalance[msg.sender]);//Possibly remove this - avoids more tokens being assigned than possible.
+        totalStaked = totalStaked.sub(stakedBalance[msg.sender]);//Possibly remove this? Not sure if this totally breaks it or not. Think xiTokenLeft fixes though.
         stakedBalance[msg.sender] = 0;
         
     }
