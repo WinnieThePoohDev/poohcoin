@@ -353,8 +353,9 @@ contract XiFarm is Context, Ownable {
   
   uint public xiStakeRewardCap = 20000000 * (10 ** 18); //20% of TOTAL Xi Supply
   uint public xiStakeTime = 96000; //TIME IN BLOCKS
+  uint public xiTokensLeft; //KEEPS TRACK OF HOW MANY TOKENS ARE LEFT
   
-  uint public blockReward = (xiStakeRewardCap/xiStakeTime);
+  uint public blockReward = (xiTokensLeft/xiStakeTime); //DETERMINES REWARDS BASED ON TOKENS LEFT IN POOL
   uint totalStaked = 0;
   
   mapping (address => uint256) public stakedBalance;
@@ -368,6 +369,7 @@ contract XiFarm is Context, Ownable {
         uint[] deposits;
         uint[] depositTimes;
         uint[] rewards;
+        
     }
     
     mapping(address => stakeInfo) Stakes;
@@ -429,6 +431,8 @@ contract XiFarm is Context, Ownable {
             Stakes[msg.sender].rewards[i] = ((poolShare*blockReward)/100).mul(diff);
             //send amount of Xi stored in rewards[i] to user
             Xi.transfer(msg.sender, Stakes[msg.sender].rewards[i]);
+            //Subtract correct amount from xiTokensLeft
+            xiTokensLeft.sub(Stakes[msg.sender].rewards[i]);
             //subtract deposits[i] from user stakedBalance
             stakedBalance[msg.sender] = stakedBalance[msg.sender].sub(Stakes[msg.sender].deposits[i]);
         }
@@ -439,7 +443,7 @@ contract XiFarm is Context, Ownable {
         POOH.transfer(msg.sender, stakedBalance[msg.sender]);
         //subtract from total staked
         //Set user stakedBalance back to 0
-        totalStaked = totalStaked.sub(stakedBalance[msg.sender]);
+        totalStaked = totalStaked.sub(stakedBalance[msg.sender]);//Possibly remove this - avoids more tokens being assigned than possible.
         stakedBalance[msg.sender] = 0;
         
     }
