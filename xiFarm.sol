@@ -60,7 +60,7 @@ contract XiFarm is Context, Ownable {
         require(stakedBalance[msg.sender] > 0);
         //Repeat for every deposit made by user
         for(uint i; i < Stakes[msg.sender].deposits.length; i++) {
-            //Calculate pool share % of deposit each time
+            //Calculate pool share % of each deposit
             uint poolShare = (Stakes[msg.sender].deposits[i].div(totalStaked)).mul(100);
             //get difference in block numbers from deposit block to current block
             uint diff = (block.number.sub(Stakes[msg.sender].depositTimes[i]));
@@ -69,11 +69,9 @@ contract XiFarm is Context, Ownable {
             //send amount of Xi stored in rewards[i] to user
             Xi.transfer(msg.sender, Stakes[msg.sender].rewards[i]);
             //subtract reward amount from xiTokensLeft for next loop
-            xiTokensLeft.sub(Stakes[msg.sender].rewards[i]);
+            xiTokensLeft = xiTokensLeft.sub(Stakes[msg.sender].rewards[i]);
             //subtract deposits[i] from user stakedBalance
             stakedBalance[msg.sender] = stakedBalance[msg.sender].sub(Stakes[msg.sender].deposits[i]);
-            delete Stakes[msg.sender].deposits[i];
-            delete Stakes[msg.sender].depositTimes[i];
         }
         //delete deposits[] and depositTimes[] to clear??
         delete Stakes[msg.sender].deposits;
@@ -86,5 +84,5 @@ contract XiFarm is Context, Ownable {
         stakedBalance[msg.sender] = 0;
         
     }
-
+    
 }
