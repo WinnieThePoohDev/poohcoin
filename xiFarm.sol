@@ -16,8 +16,8 @@ contract XiFarm is Context, Ownable {
   IBEP20 POOH = IBEP20(poohAddy);
   IBEP20 Xi = IBEP20(XiAddy);
   
-  uint public xiStakeRewardCap = 20000000 * (10 ** 18); //20% of TOTAL Xi Supply
-  uint public xiStakeTime = 96000; //TIME IN BLOCKS
+  uint public xiStakeRewardCap = 20000000 * (10 ** 18); //20% of TOTAL Xi Supply - To be deposited by Xi Token contract creator
+  uint public xiStakeTime = 96000; //TIME IN BLOCKS - ~1,440,000 seconds
   uint public xiTokensLeft; // Tracks how many REWARD tokens are left in contract
   
   uint public blockReward = (xiTokensLeft/xiStakeTime); // Keeps track of how many tokens are rewarded "per block" by overall duration.
@@ -27,7 +27,6 @@ contract XiFarm is Context, Ownable {
 
 
   constructor() public {
-            xiTokensLeft = 20000000 * (10 ** 18); // Set this to the number of REWARD tokens to be sent to the contract by owners.
   }
     //Struct that keeps information about each users stake, mapped to with Stakes
     struct stakeInfo {
@@ -35,15 +34,16 @@ contract XiFarm is Context, Ownable {
         uint[] deposits;
         uint[] depositTimes;
         uint[] rewards;
+        uint totalStakedByUser;
         
     }
     
     mapping(address => stakeInfo) Stakes;
     
-    function stakePOOH(uint _amount) public {
+    function stakePOOH(uint256 _amount) public {
         require(_amount > 0);
         //Transfer POOH for staking
-        POOH.transferFrom(msg.sender, address(this), _amount);
+        require(POOH.transferFrom(msg.sender, address(this), _amount));
         //Update stakedBalance for msgsender address
         stakedBalance[msg.sender] = stakedBalance[msg.sender].add(_amount);
         //Add _amount to totalStaked
@@ -61,11 +61,11 @@ contract XiFarm is Context, Ownable {
         //Repeat for every deposit made by user
         for(uint i; i < Stakes[msg.sender].deposits.length; i++) {
             //Calculate pool share % of each deposit
-            uint poolShare = (Stakes[msg.sender].deposits[i].div(totalStaked)).mul(100);
+            uint poolShare = (Stakes[msg.sender].deposits[i].div(totalStaked));
             //get difference in block numbers from deposit block to current block
             uint diff = (block.number.sub(Stakes[msg.sender].depositTimes[i]));
             //assign appropriate reward to user rewards[i]
-            Stakes[msg.sender].rewards[i] = ((poolShare.mul(blockReward)).div(100)).mul(diff);
+            Stakes[msg.sender].rewards[i] = ((poolShare.mul(blockReward))).mul(diff);
             //send amount of Xi stored in rewards[i] to user
             Xi.transfer(msg.sender, Stakes[msg.sender].rewards[i]);
             //subtract reward amount from xiTokensLeft for next loop
@@ -85,4 +85,6 @@ contract XiFarm is Context, Ownable {
         
     }
     
+    
 }
+
