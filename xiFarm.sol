@@ -10,8 +10,8 @@ contract XiFarm is Context, Ownable {
     
   using SafeMath for uint256;
   
-  address poohAddy = 0x9673C2196fCAe71bE87864CDb04aDc4644559e89;//POOHTEST ADDY - Address of token to BE STAKED.
-  address XiAddy = 0x098b246bf19ba9C5aD9C5dD994815e1db444eaA6;//XITEST ADDY - Address of token to be REWARDED to stakers.
+  address poohAddy = 0x9673C2196fCAe71bE87864CDb04aDc4644559e89;//POOHTEST ADDY
+  address XiAddy = 0x098b246bf19ba9C5aD9C5dD994815e1db444eaA6;//XITEST ADDY
   
   IBEP20 POOH = IBEP20(poohAddy);
   IBEP20 Xi = IBEP20(XiAddy);
@@ -41,9 +41,7 @@ contract XiFarm is Context, Ownable {
     mapping(address => stakeInfo) Stakes;
     
     function stakePOOH(uint _amount) public {
-        
         require(_amount > 0);
-        
         //Transfer POOH for staking
         POOH.transferFrom(msg.sender, address(this), _amount);
         //Update stakedBalance for msgsender address
@@ -55,7 +53,6 @@ contract XiFarm is Context, Ownable {
         Stakes[msg.sender].deposits.push(_amount);
         Stakes[msg.sender].depositTimes.push(block.number);
 
-
     }
     
     function unstakeTokens() public {
@@ -64,17 +61,19 @@ contract XiFarm is Context, Ownable {
         //Repeat for every deposit made by user
         for(uint i; i < Stakes[msg.sender].deposits.length; i++) {
             //Calculate pool share % of deposit each time
-            uint poolShare = (Stakes[msg.sender].deposits[i]/totalStaked).mul(100);
+            uint poolShare = (Stakes[msg.sender].deposits[i].div(totalStaked)).mul(100);
             //get difference in block numbers from deposit block to current block
             uint diff = (block.number.sub(Stakes[msg.sender].depositTimes[i]));
             //assign appropriate reward to user rewards[i]
-            Stakes[msg.sender].rewards[i] = (poolShare*blockReward/100).mul(diff);
+            Stakes[msg.sender].rewards[i] = ((poolShare.mul(blockReward)).div(100)).mul(diff);
             //send amount of Xi stored in rewards[i] to user
             Xi.transfer(msg.sender, Stakes[msg.sender].rewards[i]);
             //subtract reward amount from xiTokensLeft for next loop
             xiTokensLeft.sub(Stakes[msg.sender].rewards[i]);
             //subtract deposits[i] from user stakedBalance
             stakedBalance[msg.sender] = stakedBalance[msg.sender].sub(Stakes[msg.sender].deposits[i]);
+            delete Stakes[msg.sender].deposits[i];
+            delete Stakes[msg.sender].depositTimes[i];
         }
         //delete deposits[] and depositTimes[] to clear??
         delete Stakes[msg.sender].deposits;
