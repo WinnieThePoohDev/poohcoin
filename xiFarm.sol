@@ -10,8 +10,8 @@ contract XiFarm is Context, Ownable {
     
   using SafeMath for uint256;
   
-  address poohAddy = 0x9673C2196fCAe71bE87864CDb04aDc4644559e89;//POOHTEST ADDY
-  address XiAddy = 0x098b246bf19ba9C5aD9C5dD994815e1db444eaA6;//XITEST ADDY
+  address poohAddy = 0x9673C2196fCAe71bE87864CDb04aDc4644559e89;//POOHTEST ADDY - Address of token to BE STAKED.
+  address XiAddy = 0x098b246bf19ba9C5aD9C5dD994815e1db444eaA6;//XITEST ADDY - Address of token to be REWARDED to stakers.
   
   IBEP20 POOH = IBEP20(poohAddy);
   IBEP20 Xi = IBEP20(XiAddy);
