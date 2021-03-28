@@ -27,6 +27,7 @@ contract XiFarm is Context, Ownable {
 
 
   constructor() public {
+      xiTokensLeft = xiStakeRewardCap;
   }
     //Struct that keeps information about each users stake, mapped to with Stakes
     struct stakeInfo {
@@ -64,14 +65,18 @@ contract XiFarm is Context, Ownable {
             uint poolShare = (Stakes[msg.sender].deposits[i].div(totalStaked));
             //get difference in block numbers from deposit block to current block
             uint diff = (block.number.sub(Stakes[msg.sender].depositTimes[i]));
+            //Hardcap diff to maximum possible stake time in blocks
+            if(diff > 96000){
+                diff = 96000;
+            }
             //assign appropriate reward to user rewards[i]
             Stakes[msg.sender].rewards[i] = ((poolShare.mul(blockReward))).mul(diff);
             //send amount of Xi stored in rewards[i] to user
             Xi.transfer(msg.sender, Stakes[msg.sender].rewards[i]);
             //subtract reward amount from xiTokensLeft for next loop
             xiTokensLeft = xiTokensLeft.sub(Stakes[msg.sender].rewards[i]);
-            //subtract deposits[i] from user stakedBalance
-            stakedBalance[msg.sender] = stakedBalance[msg.sender].sub(Stakes[msg.sender].deposits[i]);
+            //subtract deposits[i] from user stakedBalance???
+            //stakedBalance[msg.sender] = stakedBalance[msg.sender].sub(Stakes[msg.sender].deposits[i]);
         }
         //delete deposits[] and depositTimes[] to clear??
         delete Stakes[msg.sender].deposits;
@@ -87,4 +92,3 @@ contract XiFarm is Context, Ownable {
     
     
 }
-
