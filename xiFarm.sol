@@ -71,7 +71,7 @@ contract XiFarm is Context, Ownable {
                 diff = diff.sub(block.number-endBlock);
             }
             //assign appropriate reward to user rewards[i]
-            //Number of tokens staked multiplied by number of blocks staked for and divided by 20k to keep the total supply reasonable
+            //Number of tokens staked multiplied by number of blocks staked for and divided by 20k cos im shit at math and can't make it work any other way
             Stakes[msg.sender].rewards[i] = (Stakes[msg.sender].deposits[i].mul(diff))/20000;
             //send amount of Xi stored in rewards[i] to user
             Xi.transfer(msg.sender, Stakes[msg.sender].rewards[i]);
