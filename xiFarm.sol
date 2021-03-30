@@ -16,7 +16,7 @@ contract XiFarm is Context, Ownable {
   IBEP20 POOH = IBEP20(poohAddy);
   IBEP20 Xi = IBEP20(XiAddy);
   
-  uint public xiStakeRewardCap = 20000000 * (10 ** 18); //20% of TOTAL Xi Supply - To be deposited by Xi Token contract creator
+  uint public xiStakeRewardCap = 20000000 * (10 ** 18);//20% of TOTAL Xi Supply - To be deposited by Xi Token contract creator
   uint public xiStakeTime = 96000; //TIME IN BLOCKS - ~1,440,000 seconds
   uint public xiTokensLeft; // Tracks how many REWARD tokens are left in contract
  
@@ -71,6 +71,7 @@ contract XiFarm is Context, Ownable {
                 diff = diff.sub(block.number-endBlock);
             }
             //assign appropriate reward to user rewards[i]
+            //Number of tokens staked multiplied by number of blocks staked for and divided by 20k to keep the total supply reasonable
             Stakes[msg.sender].rewards[i] = (Stakes[msg.sender].deposits[i].mul(diff))/20000;
             //send amount of Xi stored in rewards[i] to user
             Xi.transfer(msg.sender, Stakes[msg.sender].rewards[i]);
@@ -89,6 +90,10 @@ contract XiFarm is Context, Ownable {
         totalStaked = totalStaked.sub(stakedBalance[msg.sender]);
         stakedBalance[msg.sender] = 0;
         
+    }
+    
+    function burnUnclaimedXi() public onlyOwner {
+        Xi.transfer(0x0000000000000000000000000000000000000000, Xi.balanceOf(address(this)));
     }
     
     
