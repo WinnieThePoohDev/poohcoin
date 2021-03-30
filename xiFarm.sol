@@ -19,15 +19,18 @@ contract XiFarm is Context, Ownable {
   uint public xiStakeRewardCap = 20000000 * (10 ** 18); //20% of TOTAL Xi Supply - To be deposited by Xi Token contract creator
   uint public xiStakeTime = 96000; //TIME IN BLOCKS - ~1,440,000 seconds
   uint public xiTokensLeft; // Tracks how many REWARD tokens are left in contract
-  
-  uint public blockReward = (xiTokensLeft/xiStakeTime); // Keeps track of how many tokens are rewarded "per block" by overall duration.
+ 
   uint totalStaked = 0;
+  uint startBlock;
+  uint endBlock;
   
   mapping (address => uint256) public stakedBalance;
 
 
   constructor() public {
       xiTokensLeft = xiStakeRewardCap;
+      startBlock = block.number;
+      endBlock = startBlock+xiStakeTime;
   }
     //Struct that keeps information about each users stake, mapped to with Stakes
     struct stakeInfo {
@@ -35,7 +38,6 @@ contract XiFarm is Context, Ownable {
         uint[] deposits;
         uint[] depositTimes;
         uint[] rewards;
-        uint totalStakedByUser;
         
     }
     
@@ -43,6 +45,7 @@ contract XiFarm is Context, Ownable {
     
     function stakePOOH(uint256 _amount) public {
         require(_amount > 0);
+        require(block.number < endBlock);
         //Transfer POOH for staking
         require(POOH.transferFrom(msg.sender, address(this), _amount));
         //Update stakedBalance for msgsender address
@@ -50,7 +53,7 @@ contract XiFarm is Context, Ownable {
         //Add _amount to totalStaked
         totalStaked = totalStaked.add(_amount);
         //Push _amount to deposits[] and block.number to depositTimes[]
-        //Used to calculate poolShare and distribute rewards upon unstaking - repeated for every deposit made individually
+        //Used to calculate and distribute rewards upon unstaking - repeated for every deposit made individually
         Stakes[msg.sender].deposits.push(_amount);
         Stakes[msg.sender].depositTimes.push(block.number);
 
@@ -61,22 +64,20 @@ contract XiFarm is Context, Ownable {
         require(stakedBalance[msg.sender] > 0);
         //Repeat for every deposit made by user
         for(uint i; i < Stakes[msg.sender].deposits.length; i++) {
-            //Calculate pool share % of each deposit
-            uint poolShare = (Stakes[msg.sender].deposits[i].div(totalStaked));
             //get difference in block numbers from deposit block to current block
             uint diff = (block.number.sub(Stakes[msg.sender].depositTimes[i]));
-            //Hardcap diff to maximum possible stake time in blocks
-            if(diff > 96000){
-                diff = 96000;
+            //Clamp diff to maximum possible stake window
+            if(block.number > endBlock){
+                diff = diff.sub(block.number-endBlock);
             }
             //assign appropriate reward to user rewards[i]
-            Stakes[msg.sender].rewards[i] = ((poolShare.mul(blockReward))).mul(diff);
+            Stakes[msg.sender].rewards[i] = (Stakes[msg.sender].deposits[i].mul(diff))/20000;
             //send amount of Xi stored in rewards[i] to user
             Xi.transfer(msg.sender, Stakes[msg.sender].rewards[i]);
             //subtract reward amount from xiTokensLeft for next loop
             xiTokensLeft = xiTokensLeft.sub(Stakes[msg.sender].rewards[i]);
-            //subtract deposits[i] from user stakedBalance???
-            //stakedBalance[msg.sender] = stakedBalance[msg.sender].sub(Stakes[msg.sender].deposits[i]);
+            //subtract deposits[i] from user stakedBalance
+            stakedBalance[msg.sender] = stakedBalance[msg.sender].sub(Stakes[msg.sender].deposits[i]);
         }
         //delete deposits[] and depositTimes[] to clear??
         delete Stakes[msg.sender].deposits;
