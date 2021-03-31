@@ -184,5 +184,9 @@ contract XiFarm is Context, Ownable {
         XiAddy = _address;
     }
     
+    function updateLPaddress(address _address) public onlyOwner {
+        LPaddy = _address;
+    }
+    
     
 }
