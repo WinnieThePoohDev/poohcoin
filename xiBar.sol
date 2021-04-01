@@ -66,6 +66,7 @@ contract XiFarm is Context, Ownable {
     mapping(address => stakeInfo) Stakes;
     mapping(address => stakeInfo) LPStakes;
     uint[] everyPoohDepositTime;
+    uint[] _totalStakedAtDeposit;
     
     function stakePOOH(uint256 _amount) public {
         require(_amount > 0);
@@ -79,6 +80,7 @@ contract XiFarm is Context, Ownable {
         //Push _amount to deposits[] and block.number to depositTimes[]
         //Used to calculate and distribute rewards upon unstaking - repeated for every deposit made individually
         everyPoohDepositTime.push(block.number);
+        _totalStakedAtDeposit.push(totalStaked);
         Stakes[msg.sender].totalStakedAtDeposit.push(totalStaked);
         Stakes[msg.sender].deposits.push(_amount);
         Stakes[msg.sender].depositTimes.push(block.number);
@@ -93,11 +95,11 @@ contract XiFarm is Context, Ownable {
             //Checks if current deposit in loop was deposited on a lower block number than the latest deposit
             if(Stakes[msg.sender].depositTimes[i] < everyPoohDepositTime[everyPoohDepositTime.length-1]){
                 //Loop through every deposit blocknumber, check if user staked at lower blockheight
-                for(uint y = i; Stakes[msg.sender].depositTimes[i] <= everyPoohDepositTime[y]; y++){
+                for(uint y = 0; Stakes[msg.sender].depositTimes[i] < everyPoohDepositTime[y]; y++){
                     //set diff var to difference in blocks between Deposit [y] and user staked deposit[i]
-                    uint diff = everyPoohDepositTime[y-1].sub(Stakes[msg.sender].depositTimes[i]);
+                    uint diff = everyPoohDepositTime[y].sub(Stakes[msg.sender].depositTimes[i]);
                     //run reward calculation for this deposit based on total number of tokens staked before another deposit.
-                    Stakes[msg.sender].rewards[i] = Stakes[msg.sender].rewards[i].add(calcPoohReward(Stakes[msg.sender].deposits[i], Stakes[msg.sender].totalStakedAtDeposit[i])*diff);
+                    Stakes[msg.sender].rewards[i] = Stakes[msg.sender].rewards[i].add(calcPoohReward(Stakes[msg.sender].deposits[i], Stakes[msg.sender].totalStakedAtDeposit[i], _totalStakedAtDeposit[i])*diff);
                 }
             }else{
             uint diff = (block.number.sub(Stakes[msg.sender].depositTimes[i]));
@@ -106,7 +108,7 @@ contract XiFarm is Context, Ownable {
                 diff = diff.sub(block.number-endBlock);
             }
             //assign appropriate reward to user rewards[i]
-            Stakes[msg.sender].rewards[i] = calcPoohReward(Stakes[msg.sender].deposits[i], Stakes[msg.sender].totalStakedAtDeposit[i])*diff;
+            Stakes[msg.sender].rewards[i] = calcPoohReward(Stakes[msg.sender].deposits[i], Stakes[msg.sender].totalStakedAtDeposit[i], _totalStakedAtDeposit[i])*diff;
             }
             //send amount of Xi stored in rewards[i] to user
             Xi.transfer(msg.sender, Stakes[msg.sender].rewards[i]);
@@ -180,9 +182,10 @@ contract XiFarm is Context, Ownable {
         return mul;
     }
     
-    function calcPoohReward(uint _reward, uint _totalStakedAD) internal view returns (uint) {
-        uint div = xiStakeRewardCap/_totalStakedAD;
-        uint mul = _reward.mul(div)/xiStakeTime; 
+    function calcPoohReward(uint _reward, uint _totalStakedAD, uint _totalPoolAtBlock) internal view returns (uint) {
+        uint rate = _totalPoolAtBlock/_totalStakedAD;
+        uint div = xiStakeRewardCap/totalStaked;
+        uint mul = (_reward.mul(div)/xiStakeTime)*rate; 
         return mul;
     }
     
