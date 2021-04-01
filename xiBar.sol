@@ -99,7 +99,7 @@ contract XiFarm is Context, Ownable {
                     //set diff var to difference in blocks between Deposit [y] and user staked deposit[i]
                     uint diff = everyPoohDepositTime[y].sub(Stakes[msg.sender].depositTimes[i]);
                     //run reward calculation for this deposit based on total number of tokens staked before another deposit.
-                    Stakes[msg.sender].rewards[i] = Stakes[msg.sender].rewards[i].add(calcPoohReward(Stakes[msg.sender].deposits[i], Stakes[msg.sender].totalStakedAtDeposit[i], _totalStakedAtDeposit[i])*diff);
+                    Stakes[msg.sender].rewards[i] = Stakes[msg.sender].rewards[i].add(calcPoohReward(Stakes[msg.sender].deposits[i], Stakes[msg.sender].totalStakedAtDeposit[i], _totalStakedAtDeposit[y])*diff);
                 }
             }else{
             uint diff = (block.number.sub(Stakes[msg.sender].depositTimes[i]));
