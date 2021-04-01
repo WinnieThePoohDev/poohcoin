@@ -92,10 +92,10 @@ contract XiFarm is Context, Ownable {
         for(uint i; i < Stakes[msg.sender].deposits.length; i++) {
             //Checks if current deposit in loop was deposited on a lower block number than the latest deposit
             if(Stakes[msg.sender].depositTimes[i] < everyPoohDepositTime[everyPoohDepositTime.length-1]){
-                //Loop through every deposit blocknumber, check if user staked balance is lower
-                for(uint y = i; Stakes[msg.sender].depositTimes[i] <= everyPoohDepositTime[y]; y++){
-                    //set diff var to difference between Deposit [y] and user staked deposit
-                    uint diff = everyPoohDepositTime[y].sub(Stakes[msg.sender].depositTimes[i]);
+                //Loop through every deposit blocknumber, check if user staked at lower blockheight
+                for(uint y = i; Stakes[msg.sender].depositTimes[i] >= everyPoohDepositTime[y]; y++){
+                    //set diff var to difference in blocks between Deposit [y] and user staked deposit[i]
+                    uint diff = everyPoohDepositTime[y-1].sub(Stakes[msg.sender].depositTimes[i]);
                     //run reward calculation for this deposit based on total number of tokens staked before another deposit.
                     Stakes[msg.sender].rewards[i] = Stakes[msg.sender].rewards[i].add(calcPoohReward(Stakes[msg.sender].deposits[i], Stakes[msg.sender].totalStakedAtDeposit[i])*diff);
                 }
